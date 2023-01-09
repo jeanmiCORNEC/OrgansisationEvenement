@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\AtelierRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -37,6 +39,22 @@ class Atelier
 
     #[ORM\Column]
     private ?bool $isMaintained = null;
+
+    #[ORM\ManyToOne(inversedBy: 'atelier')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Evenement $evenement = null;
+
+    #[ORM\ManyToMany(targetEntity: Salle::class, inversedBy: 'ateliers')]
+    private Collection $salle;
+
+    #[ORM\ManyToMany(targetEntity: User::class, inversedBy: 'ateliers')]
+    private Collection $user;
+
+    public function __construct()
+    {
+        $this->salle = new ArrayCollection();
+        $this->user = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -135,6 +153,66 @@ class Atelier
     public function setIsMaintained(bool $isMaintained): self
     {
         $this->isMaintained = $isMaintained;
+
+        return $this;
+    }
+
+    public function getEvenement(): ?Evenement
+    {
+        return $this->evenement;
+    }
+
+    public function setEvenement(?Evenement $evenement): self
+    {
+        $this->evenement = $evenement;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Salle>
+     */
+    public function getSalle(): Collection
+    {
+        return $this->salle;
+    }
+
+    public function addSalle(Salle $salle): self
+    {
+        if (!$this->salle->contains($salle)) {
+            $this->salle->add($salle);
+        }
+
+        return $this;
+    }
+
+    public function removeSalle(Salle $salle): self
+    {
+        $this->salle->removeElement($salle);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, User>
+     */
+    public function getUser(): Collection
+    {
+        return $this->user;
+    }
+
+    public function addUser(User $user): self
+    {
+        if (!$this->user->contains($user)) {
+            $this->user->add($user);
+        }
+
+        return $this;
+    }
+
+    public function removeUser(User $user): self
+    {
+        $this->user->removeElement($user);
 
         return $this;
     }

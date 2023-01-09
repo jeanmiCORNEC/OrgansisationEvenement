@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\EvenementRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -28,6 +30,22 @@ class Evenement
 
     #[ORM\Column(length: 255)]
     private ?string $lieu = null;
+
+    #[ORM\OneToMany(mappedBy: 'evenement', targetEntity: Salle::class)]
+    private Collection $salle;
+
+    #[ORM\OneToMany(mappedBy: 'evenement', targetEntity: Atelier::class)]
+    private Collection $atelier;
+
+    #[ORM\ManyToMany(targetEntity: User::class, inversedBy: 'evenements')]
+    private Collection $user;
+
+    public function __construct()
+    {
+        $this->salle = new ArrayCollection();
+        $this->atelier = new ArrayCollection();
+        $this->user = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -90,6 +108,90 @@ class Evenement
     public function setLieu(string $lieu): self
     {
         $this->lieu = $lieu;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Salle>
+     */
+    public function getSalle(): Collection
+    {
+        return $this->salle;
+    }
+
+    public function addSalle(Salle $salle): self
+    {
+        if (!$this->salle->contains($salle)) {
+            $this->salle->add($salle);
+            $salle->setEvenement($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSalle(Salle $salle): self
+    {
+        if ($this->salle->removeElement($salle)) {
+            // set the owning side to null (unless already changed)
+            if ($salle->getEvenement() === $this) {
+                $salle->setEvenement(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Atelier>
+     */
+    public function getAtelier(): Collection
+    {
+        return $this->atelier;
+    }
+
+    public function addAtelier(Atelier $atelier): self
+    {
+        if (!$this->atelier->contains($atelier)) {
+            $this->atelier->add($atelier);
+            $atelier->setEvenement($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAtelier(Atelier $atelier): self
+    {
+        if ($this->atelier->removeElement($atelier)) {
+            // set the owning side to null (unless already changed)
+            if ($atelier->getEvenement() === $this) {
+                $atelier->setEvenement(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, User>
+     */
+    public function getUser(): Collection
+    {
+        return $this->user;
+    }
+
+    public function addUser(User $user): self
+    {
+        if (!$this->user->contains($user)) {
+            $this->user->add($user);
+        }
+
+        return $this;
+    }
+
+    public function removeUser(User $user): self
+    {
+        $this->user->removeElement($user);
 
         return $this;
     }

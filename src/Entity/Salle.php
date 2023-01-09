@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\SalleRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -29,11 +31,28 @@ class Salle
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $observation = null;
 
-    #[ORM\Column(length: 255, nullable: true)]
-    private ?string $options = null;
-
     #[ORM\Column]
     private ?bool $IsPMR = null;
+
+    #[ORM\ManyToOne(inversedBy: 'salle')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Evenement $evenement = null;
+
+    #[ORM\ManyToMany(targetEntity: Atelier::class, mappedBy: 'salle')]
+    private Collection $ateliers;
+
+    #[ORM\ManyToMany(targetEntity: User::class, inversedBy: 'salles')]
+    private Collection $user;
+
+    #[ORM\ManyToMany(targetEntity: Option::class, inversedBy: 'salles')]
+    private Collection $options;
+
+    public function __construct()
+    {
+        $this->ateliers = new ArrayCollection();
+        $this->user = new ArrayCollection();
+        $this->options = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -100,18 +119,6 @@ class Salle
         return $this;
     }
 
-    public function getOptions(): ?string
-    {
-        return $this->options;
-    }
-
-    public function setOptions(?string $options): self
-    {
-        $this->options = $options;
-
-        return $this;
-    }
-
     public function isIsPMR(): ?bool
     {
         return $this->IsPMR;
@@ -120,6 +127,93 @@ class Salle
     public function setIsPMR(bool $IsPMR): self
     {
         $this->IsPMR = $IsPMR;
+
+        return $this;
+    }
+
+    public function getEvenement(): ?Evenement
+    {
+        return $this->evenement;
+    }
+
+    public function setEvenement(?Evenement $evenement): self
+    {
+        $this->evenement = $evenement;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Atelier>
+     */
+    public function getAteliers(): Collection
+    {
+        return $this->ateliers;
+    }
+
+    public function addAtelier(Atelier $atelier): self
+    {
+        if (!$this->ateliers->contains($atelier)) {
+            $this->ateliers->add($atelier);
+            $atelier->addSalle($this);
+        }
+
+        return $this;
+    }
+
+    public function removeAtelier(Atelier $atelier): self
+    {
+        if ($this->ateliers->removeElement($atelier)) {
+            $atelier->removeSalle($this);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, User>
+     */
+    public function getUser(): Collection
+    {
+        return $this->user;
+    }
+
+    public function addUser(User $user): self
+    {
+        if (!$this->user->contains($user)) {
+            $this->user->add($user);
+        }
+
+        return $this;
+    }
+
+    public function removeUser(User $user): self
+    {
+        $this->user->removeElement($user);
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Option>
+     */
+    public function getOptions(): Collection
+    {
+        return $this->options;
+    }
+
+    public function addOption(Option $option): self
+    {
+        if (!$this->options->contains($option)) {
+            $this->options->add($option);
+        }
+
+        return $this;
+    }
+
+    public function removeOption(Option $option): self
+    {
+        $this->options->removeElement($option);
 
         return $this;
     }
